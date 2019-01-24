@@ -21,6 +21,7 @@ from xml.dom.minidom import parse
 from metadatautils import MetadataUtils
 import urlparse
 import sys
+import os
 
 
 class MainModule:
@@ -443,7 +444,7 @@ class MainModule:
             self.win.clearProperty("traileractionbusy")
 
     def playtraileryoutube(self):
-        """auto play first youtube trailer windowed/fullscreen"""
+        """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated (will later seperate methods)"""
         if not getCondVisibility("!String.IsEmpty(Window(Home).Property(traileractionbusy)) "
                                  "| Window.IsActive(busydialognocancel)"):
             title = self.params.get("title", "")
@@ -457,24 +458,40 @@ class MainModule:
             if local:
                 local_language = xbmc.getInfoLabel("System.Language").decode('utf-8')
             li_trailer = ""
-            results = []
-            if not getCondVisibility("Container.Scrolling | Container.OnNext"
-                                     " | Container.OnPrevious | Player.HasVideo"):
-                for media in self.get_youtube_listing("(%s,%s) Trailer" % (title, local_language)):
-                    if not media["filetype"] == "directory":
-                        results.append(media["file"])
-                    if results:
-                        li_trailer = results[0]
-                        break
-                self.win.setProperty("traileractionbusy", "traileractionbusy")
-                if li_trailer and not getCondVisibility("Container.Scrolling | Container.OnNext "
-                                                        "| Container.OnPrevious | Player.HasVideo") \
-                        and list_item_title == xbmc.getInfoLabel("ListItem.Title"):
-                    if trailer_mode == "fullscreen" or trailer_mode == "background":
-                        xbmc.executebuiltin('PlayMedia("%s")' % li_trailer)
-                    else:
-                        xbmc.executebuiltin('PlayMedia("%s",1)' % li_trailer)
-                    self.win.setProperty("TrailerPlaying", trailer_mode)
+
+            item_path = xbmc.getInfoLabel(
+                'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+            folder_name = xbmc.getInfoLabel(
+                'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+            if item_path:
+                dirs, files = xbmcvfs.listdir(item_path)
+                for filename in files:
+                    folder_name_trailer = folder_name.lower() + "-trailer"
+                    file_name_noext = os.path.splitext(filename)[0].lower()
+                    if file_name_noext.endswith("-trailer") and \
+                            (file_name_noext == "tvshow-trailer" or file_name_noext == folder_name_trailer):
+                        li_trailer = os.path.join(item_path, filename)
+
+            if not li_trailer:
+                results = []
+                if not getCondVisibility("Container.Scrolling | Container.OnNext"
+                                         " | Container.OnPrevious | Player.HasVideo"):
+                    for media in self.get_youtube_listing("(%s,%s) Trailer" % (title, local_language)):
+                        if not media["filetype"] == "directory":
+                            results.append(media["file"])
+                        if results:
+                            li_trailer = results[0]
+                            break
+
+            self.win.setProperty("traileractionbusy", "traileractionbusy")
+            if li_trailer and not getCondVisibility("Container.Scrolling | Container.OnNext "
+                                                    "| Container.OnPrevious | Player.HasVideo") \
+                    and list_item_title == xbmc.getInfoLabel("ListItem.Title"):
+                if trailer_mode == "fullscreen" or trailer_mode == "background":
+                    xbmc.executebuiltin('PlayMedia("%s")' % li_trailer)
+                else:
+                    xbmc.executebuiltin('PlayMedia("%s",1)' % li_trailer)
+                self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
     def colorpicker(self):
