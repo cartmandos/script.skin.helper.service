@@ -443,6 +443,16 @@ class MainModule:
                 self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
+    def gettvshowid(self):
+        """extracts tvshowid from kodidb"""
+        dbid = self.params.get("dbid")
+        try:
+            tvshowid = str(self.mutils.kodidb.episode(dbid)["tvshowid"])
+            output = self.params.get("output", "ListItem.TVShowID")
+            self.win.setProperty(output, tvshowid)
+        except Exception:
+            log_msg("Could not retrieve tvshowid for dbid: %s" % dbid)
+
 
     def playtraileryoutube(self):
         """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated (will later seperate methods)"""

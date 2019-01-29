@@ -1,5 +1,15 @@
 1.30
-- Revisited splitstring method to avoid nonetype and indexoutofbound erros
+- Added new method:
+	method name: gettvshowid
+	@param 'dbid' list item's dbid, expecting episode's dbid
+	(optional) @param 'output' name of the property to set the result to
+	The method gets tvshowid from a given episode's dbid and set it as a window property.
+	usage:
+	RunScript(script.skin.helper.service,ACTION=gettvshowid,DBID=$INFO[ListItem.DBID])
+	will return the result (if succeeded) to $INFO[Window(Home).Property(ListItem.TVShowID)]
+	or add param OUTPUT="custom_name_of_property" to set it to $INFO[Window(Home).Property(custom_name_of_property)]
+
+- Revisited stripstring method to avoid nonetype and indexoutofbound errors
 - Fixed SH monitoring integration with Artwork Beef
 	* Will auto-download artwork via artwork beef if SkinHasSetting(EnableArtworkBeef)
 
