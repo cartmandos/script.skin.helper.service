@@ -443,6 +443,7 @@ class MainModule:
                 self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
+
     def playtraileryoutube(self):
         """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated (will later seperate methods)"""
         if not getCondVisibility("!String.IsEmpty(Window(Home).Property(traileractionbusy)) "
@@ -687,11 +688,14 @@ class MainModule:
             splitchar = " "
         skinstring = self.params.get("string")
         if not skinstring:
-            skinstring = self.params.get("skinstring")
+            skinstring = self.params.get("skinstring", "")
         output = self.params.get("output")
         index = self.params.get("index", 0)
-        skinstring = skinstring.split(splitchar)[int(index)]
-        self.win.setProperty(output, skinstring)
+        skinstring = skinstring.split(splitchar)
+        if int(index) > (len(skinstring) - 1):
+            pass
+        else:
+            self.win.setProperty(output, skinstring[int(index)])
 
     def getfilename(self, filename=""):
         '''helper to display a sanitized filename in the vidoeinfo dialog'''
