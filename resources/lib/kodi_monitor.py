@@ -99,7 +99,7 @@ class KodiMonitor(xbmc.Monitor):
         if dbid and media_type in ["movie", "episode", "musicvideo"]:
             self.metadatautils.get_streamdetails(dbid, media_type, ignore_cache=True)
             if transaction and self.bgtasks < 2:
-                self.artwork_downloader(media_type, dbid)
+                self.artwork_beef(media_type, dbid)
 
         # for music content we only flush the cache
         if dbid and (not transaction or self.bgtasks < 2):
@@ -246,15 +246,15 @@ class KodiMonitor(xbmc.Monitor):
             if li_title_org == xbmc.getInfoLabel("MusicPlayer.Title").decode('utf-8'):
                 self.metadatautils.process_method_on_list(self.set_win_prop, all_props)
 
-    def artwork_downloader(self, media_type, dbid):
+    def artwork_beef(self, media_type, dbid):
         '''trigger artwork scan with artwork downloader if enabled'''
         if getCondVisibility(
-                "System.HasAddon(script.artwork.downloader) + Skin.HasSetting(EnableArtworkDownloader)"):
+                "System.HasAddon(script.artwork.beef) + Skin.HasSetting(EnableArtworkBeef)"):
             if media_type == "episode":
                 media_type = "tvshow"
                 dbid = self.metadatautils.kodidb.episode(dbid)["tvshowid"]
             xbmc.executebuiltin(
-                "RunScript(script.artwork.downloader,silent=true,mediatype=%s,dbid=%s)" % (media_type, dbid))
+                "RunScript(script.artwork.beef,mode=auto,mediatype=%s,dbid=%s)" % (media_type, dbid))
 
     def monitor_radiostream(self):
         '''

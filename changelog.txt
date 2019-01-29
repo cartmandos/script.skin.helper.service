@@ -1,3 +1,8 @@
+1.30
+- Revisited splitstring method to avoid nonetype and indexoutofbound erros
+- Fixed SH monitoring integration with Artwork Beef
+	* Will auto-download artwork via artwork beef if SkinHasSetting(EnableArtworkBeef)
+
 1.1.29
 - Local trailers for tvshows integrated in playtraileryoutube as temp workaround, later to be seperate methods
 	Filename for recognizing tvshow trailers:
