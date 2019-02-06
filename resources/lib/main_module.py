@@ -443,16 +443,6 @@ class MainModule:
                 self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
-    def gettvshowid(self):
-        """extracts tvshowid from kodidb"""
-        dbid = self.params.get("dbid")
-        try:
-            tvshowid = str(self.mutils.kodidb.episode(dbid)["tvshowid"])
-            output = self.params.get("output", "ListItem.TVShowID")
-            self.win.setProperty(output, tvshowid)
-        except Exception:
-            log_msg("Could not retrieve tvshowid for dbid: %s" % dbid)
-
 
     def playtraileryoutube(self):
         """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated (will later seperate methods)"""
@@ -464,30 +454,36 @@ class MainModule:
             if not trailer_mode:
                 trailer_mode = "windowed"
             local = self.params.get("local", "") == "true"
-            local_language = " "
+            allow_local_tv_show = self.params.get("tvshow", "") == "true"
+            allow_youtube = self.params.get("youtube", "true") == "true"
+            local_language = ""
             list_item_title = xbmc.getInfoLabel("ListItem.Title")
             if local:
                 local_language = xbmc.getInfoLabel("System.Language").decode('utf-8')
             li_trailer = ""
 
-            item_path = xbmc.getInfoLabel(
-                'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('System.CurrentControlID')))
-            folder_name = xbmc.getInfoLabel(
-                'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('System.CurrentControlID')))
-            if item_path:
-                dirs, files = xbmcvfs.listdir(item_path)
-                for filename in files:
-                    folder_name_trailer = folder_name.lower() + "-trailer"
-                    file_name_noext = os.path.splitext(filename)[0].lower()
-                    if file_name_noext.endswith("-trailer") and \
-                            (file_name_noext == "tvshow-trailer" or file_name_noext == folder_name_trailer):
-                        li_trailer = os.path.join(item_path, filename)
+            if allow_local_tv_show:
+                item_path = xbmc.getInfoLabel(
+                    'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+                folder_name = xbmc.getInfoLabel(
+                    'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+                if item_path:
+                    dirs, files = xbmcvfs.listdir(item_path)
+                    for filename in files:
+                        folder_name_trailer = folder_name.lower() + "-trailer"
+                        file_name_noext = os.path.splitext(filename)[0].lower()
+                        if file_name_noext.endswith("-trailer") and \
+                                (file_name_noext == "tvshow-trailer" or file_name_noext == folder_name_trailer):
+                            li_trailer = os.path.join(item_path, filename)
 
-            if not li_trailer:
+            if not li_trailer and allow_youtube:
                 results = []
                 if not getCondVisibility("Container.Scrolling | Container.OnNext"
                                          " | Container.OnPrevious | Player.HasVideo"):
-                    for media in self.get_youtube_listing("(%s,%s) Trailer" % (title, local_language)):
+                    tvshow_str = ""
+                    if allow_local_tv_show:
+                        tvshow_str = "tv show"
+                    for media in self.get_youtube_listing("(%s, %s, %s) trailer" % (title, local_language, tvshow_str)):
                         if not media["filetype"] == "directory":
                             results.append(media["file"])
                         if results:
@@ -504,6 +500,16 @@ class MainModule:
                     xbmc.executebuiltin('PlayMedia("%s",1)' % li_trailer)
                 self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
+
+    def gettvshowid(self):
+        """extracts tvshowid from kodidb"""
+        dbid = self.params.get("dbid")
+        try:
+            tvshowid = str(self.mutils.kodidb.episode(dbid)["tvshowid"])
+            output = self.params.get("output", "ListItem.TVShowID")
+            self.win.setProperty(output, tvshowid)
+        except Exception:
+            log_msg("Could not retrieve tvshowid for dbid: %s" % dbid)
 
     def colorpicker(self):
         '''legacy'''
