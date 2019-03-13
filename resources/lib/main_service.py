@@ -1,26 +1,31 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''
+"""
     script.skin.helper.service
     Helper service and scripts for Kodi skins
     main_service.py
     Background service running the various threads
-'''
+"""
 
 from utils import log_msg, ADDON_ID, log_exception
 from skinsettings import SkinSettings
 from listitem_monitor import ListItemMonitor
 from kodi_monitor import KodiMonitor
-from webservice import WebService
 from metadatautils import MetadataUtils
 import xbmc
 import xbmcaddon
 import xbmcgui
+try:
+    WebServiceOn = True
+    from webservice import WebService
+except ImportError:
+    WebServiceOn = False
+    log_msg('Webservice could not be imported. If Kodi version is UWP this message can be ignored.', xbmc.LOGNOTICE)
 
 
 class MainService:
-    '''our main background service running the various threads'''
+    """our main background service running the various threads"""
     last_skin = ""
 
     def __init__(self):
@@ -32,12 +37,14 @@ class MainService:
         self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
         self.listitem_monitor = ListItemMonitor(
             metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
-        self.webservice = WebService(self.metadatautils)
+        if WebServiceOn:
+            self.webservice = WebService(self.metadatautils)
         self.win.clearProperty("SkinHelperShutdownRequested")
 
         # start the extra threads
         self.listitem_monitor.start()
-        self.webservice.start()
+        if WebServiceOn:
+            self.webservice.start()
         
         log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
@@ -54,20 +61,21 @@ class MainService:
         self.close()
 
     def close(self):
-        '''Cleanup Kodi Cpython instances'''
-        self.webservice.stop()
+        """Cleanup Kodi Cpython instances"""
+        if WebServiceOn:
+            self.webservice.stop()
         self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
         log_msg('Shutdown requested !', xbmc.LOGNOTICE)
         self.listitem_monitor.stop()
         self.metadatautils.close()
         del self.win
         del self.kodimonitor
-        #del self.metadatautils
-        #del self.webservice
+        # del self.metadatautils
+        # del self.webservice
         log_msg('%s version %s stopped' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
     def check_skin_version(self):
-        '''check if skin changed'''
+        """check if skin changed"""
         try:
             skin = xbmc.getSkinDir()
             skin_addon = xbmcaddon.Addon(id=skin)

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
     script.skin.helper.service
     Contextmenu for Pvr art
-'''
+"""
 
 import xbmc
 import xbmcgui

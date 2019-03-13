@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
     script.skin.helper.service
     Contextmenu for Animated art
-'''
+"""
 
 import xbmc
 import xbmcgui
@@ -14,7 +14,7 @@ from utils import log_msg, busyDialog
 
 
 def get_imdb_id(win, metadatautils):
-    '''get imdbnumber for listitem'''
+    """get imdbnumber for listitem"""
     content_type = win.getProperty("contenttype")
     imdb_id = xbmc.getInfoLabel("ListItem.IMDBNumber").decode('utf-8')
     if not imdb_id:

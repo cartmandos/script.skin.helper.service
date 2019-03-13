@@ -1,12 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''
+"""
     script.skin.helper.service
     Helper service and scripts for Kodi skins
     mainmodule.py
     All script methods provided by the addon
-'''
+"""
 
 import xbmc
 import xbmcvfs
@@ -25,10 +25,10 @@ import os
 
 
 class MainModule:
-    '''mainmodule provides the script methods for the skinhelper addon'''
+    """mainmodule provides the script methods for the skinhelper addon"""
 
     def __init__(self):
-        '''Initialization and main code run'''
+        """Initialization and main code run"""
         self.win = xbmcgui.Window(10000)
         self.addon = xbmcaddon.Addon(ADDON_ID)
         self.mutils = MetadataUtils()
@@ -51,15 +51,15 @@ class MainModule:
         self.close()
 
     def close(self):
-        '''Cleanup Kodi Cpython instances on exit'''
+        """Cleanup Kodi Cpython instances on exit"""
         self.mutils.close()
         del self.win
         del self.addon
         log_msg("MainModule exited")
 
     @classmethod
-    def get_params(self):
-        '''extract the params from the called script path'''
+    def get_params(cls):
+        """extract the params from the called script path"""
         params = {}
         for arg in sys.argv[1:]:
             paramname = arg.split('=')[0]
@@ -71,10 +71,10 @@ class MainModule:
         return params
 
     def deprecated_method(self, newaddon):
-        '''
+        """
             used when one of the deprecated methods is called
             print warning in log and call the external script with the same parameters
-        '''
+        """
         action = self.params.get("action")
         log_msg("Deprecated method: %s. Please call %s directly" % (action, newaddon), xbmc.LOGWARNING)
         paramstring = ""
@@ -91,12 +91,12 @@ class MainModule:
 
     @staticmethod
     def musicsearch():
-        '''helper to go directly to music search dialog'''
+        """helper to go directly to music search dialog"""
         xbmc.executebuiltin("ActivateWindow(Music)")
         xbmc.executebuiltin("SendClick(8)")
 
     def setview(self):
-        '''sets the selected viewmode for the container'''
+        """sets the selected viewmode for the container"""
         busyDialog("activate")
         content_type = get_current_content_type()
         if not content_type:
@@ -122,7 +122,7 @@ class MainModule:
             xbmc.executebuiltin("Container.SetViewMode(%s)" % view_id)
 
     def selectview(self, content_type="other", current_view=None, display_none=False):
-        '''reads skinfile with all views to present a dialog to choose from'''
+        """reads skinfile with all views to present a dialog to choose from"""
         cur_view_select_id = None
         label = ""
         all_views = []
@@ -168,7 +168,7 @@ class MainModule:
 
     # pylint: disable-msg=too-many-local-variables
     def enableviews(self):
-        '''show select dialog to enable/disable views'''
+        """show select dialog to enable/disable views"""
         all_views = []
         views_file = xbmc.translatePath('special://skin/extras/views.xml').decode("utf-8")
         richlayout = self.params.get("richlayout", "") == "true"
@@ -213,7 +213,7 @@ class MainModule:
     # pylint: enable-msg=too-many-local-variables
 
     def setforcedview(self):
-        '''helper that sets a forced view for a specific content type'''
+        """helper that sets a forced view for a specific content type"""
         content_type = self.params.get("contenttype")
         if content_type:
             current_view = xbmc.getInfoLabel("Skin.String(SkinHelper.ForcedViews.%s)" % content_type)
@@ -226,7 +226,7 @@ class MainModule:
 
     @staticmethod
     def get_youtube_listing(searchquery):
-        '''get items from youtube plugin by query'''
+        """get items from youtube plugin by query"""
         lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" % searchquery
         metadatautils = MetadataUtils()
         files = metadatautils.kodidb.files(lib_path)
@@ -234,7 +234,7 @@ class MainModule:
         return files
 
     def searchyoutube(self):
-        '''helper to search youtube for the given title'''
+        """helper to search youtube for the given title"""
         busyDialog("activate")
         title = self.params.get("title", "")
         window_header = self.params.get("header", "")
@@ -269,7 +269,7 @@ class MainModule:
             del result
 
     def getcastmedia(self):
-        '''helper to show a dialog with all media for a specific actor'''
+        """helper to show a dialog with all media for a specific actor"""
         busyDialog("activate")
         name = self.params.get("name", "")
         window_header = self.params.get("name", "")
@@ -296,7 +296,7 @@ class MainModule:
             del result
 
     def setfocus(self):
-        '''helper to set focus on a list or control'''
+        """helper to set focus on a list or control"""
         control = self.params.get("control")
         fallback = self.params.get("fallback")
         position = self.params.get("position", "0")
@@ -321,7 +321,7 @@ class MainModule:
                     count += 1
 
     def setwidgetcontainer(self):
-        '''helper that reports the current selected widget container/control'''
+        """helper that reports the current selected widget container/control"""
         controls = self.params.get("controls", "").split("-")
         if controls:
             xbmc.sleep(50)
@@ -334,7 +334,7 @@ class MainModule:
                 xbmc.sleep(50)
 
     def saveskinimage(self):
-        '''let the user select an image and save it to addon_data for easy backup'''
+        """let the user select an image and save it to addon_data for easy backup"""
         skinstring = self.params.get("skinstring", "")
         allow_multi = self.params.get("multi", "") == "true"
         header = self.params.get("header", "")
@@ -344,11 +344,11 @@ class MainModule:
 
     @staticmethod
     def checkskinsettings():
-        '''performs check of all default skin settings and labels'''
+        """performs check of all default skin settings and labels"""
         SkinSettings().correct_skin_settings()
 
     def setskinsetting(self):
-        '''allows the user to set a skin setting with a select dialog'''
+        """allows the user to set a skin setting with a select dialog"""
         setting = self.params.get("setting", "")
         org_id = self.params.get("id", "")
         if "$" in org_id:
@@ -357,27 +357,27 @@ class MainModule:
         SkinSettings().set_skin_setting(setting=setting, window_header=header, original_id=org_id)
 
     def setskinconstant(self):
-        '''allows the user to set a skin constant with a select dialog'''
+        """allows the user to set a skin constant with a select dialog"""
         setting = self.params.get("setting", "")
         value = self.params.get("value", "")
         header = self.params.get("header", "")
         SkinSettings().set_skin_constant(setting, header, value)
 
     def setskinconstants(self):
-        '''allows the skinner to set multiple skin constants'''
+        """allows the skinner to set multiple skin constants"""
         settings = self.params.get("settings", "").split("|")
         values = self.params.get("values", "").split("|")
         SkinSettings().set_skin_constants(settings, values)
 
     def setskinshortcutsproperty(self):
-        '''allows the user to make a setting for skinshortcuts using the special skinsettings dialogs'''
+        """allows the user to make a setting for skinshortcuts using the special skinsettings dialogs"""
         setting = self.params.get("setting", "")
         prop = self.params.get("property", "")
         header = self.params.get("header", "")
         SkinSettings().set_skinshortcuts_property(setting, header, prop)
 
     def togglekodisetting(self):
-        '''toggle kodi setting'''
+        """toggle kodi setting"""
         settingname = self.params.get("setting", "")
         cur_value = getCondVisibility("system.getbool(%s)" % settingname)
         if cur_value:
@@ -389,25 +389,26 @@ class MainModule:
             (settingname, new_value))
 
     def setkodisetting(self):
-        '''set kodi setting'''
+        """set kodi setting"""
         settingname = self.params.get("setting", "")
         value = self.params.get("value", "")
-        is_int = False
+
         try:
-            valueint = int(value)
-            is_int = True
-            del valueint
+            value = int(value)
         except Exception:
-            pass
-        if value.lower() in ["true", "false"]:
-            value = value.lower()
-        elif is_int:
-            value = '"%s"' % value
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            else:
+                log('SetKodiSetting: No valid value')
+                return
+
         params = {"setting": settingname, "value": value}
         kodi_json("Settings.SetSettingValue", params)
 
     def playtrailer(self):
-        '''auto play windowed trailer inside video listing'''
+        """auto play windowed trailer inside video listing"""
         if not getCondVisibility("Container.Scrolling | Container.OnNext | "
                                  "Container.OnPrevious | !String.IsEmpty(Window(Home).Property(traileractionbusy))"):
             self.win.setProperty("traileractionbusy", "traileractionbusy")
@@ -443,9 +444,9 @@ class MainModule:
                 self.win.setProperty("TrailerPlaying", trailer_mode)
             self.win.clearProperty("traileractionbusy")
 
-
     def playtraileryoutube(self):
-        """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated (will later seperate methods)"""
+        """auto play first youtube trailer windowed/fullscreen, tvshows local grab integrated
+        (will later seperate methods)"""
         if not getCondVisibility("!String.IsEmpty(Window(Home).Property(traileractionbusy)) "
                                  "| Window.IsActive(busydialognocancel)"):
             title = self.params.get("title", "")
@@ -455,6 +456,7 @@ class MainModule:
                 trailer_mode = "windowed"
             local = self.params.get("local", "") == "true"
             allow_local_tv_show = self.params.get("tvshow", "") == "true"
+            item_control_id = self.params.get("control", "System.CurrentControlID")
             allow_youtube = self.params.get("youtube", "true") == "true"
             local_language = ""
             list_item_title = xbmc.getInfoLabel("ListItem.Title")
@@ -464,9 +466,12 @@ class MainModule:
 
             if allow_local_tv_show:
                 item_path = xbmc.getInfoLabel(
-                    'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+                    'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('%s' % item_control_id)))
+                if not item_path:
+                    item_path = xbmc.getInfoLabel(
+                        'Container({}).ListItem.Property(originalpath)'.format(xbmc.getInfoLabel('%s' % item_control_id)))
                 folder_name = xbmc.getInfoLabel(
-                    'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('System.CurrentControlID')))
+                    'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('%s' % item_control_id)))
                 if item_path:
                     dirs, files = xbmcvfs.listdir(item_path)
                     for filename in files:
@@ -476,14 +481,14 @@ class MainModule:
                                 (file_name_noext == "tvshow-trailer" or file_name_noext == folder_name_trailer):
                             li_trailer = os.path.join(item_path, filename)
 
-            if not li_trailer and allow_youtube:
+            if not li_trailer and title and allow_youtube:
                 results = []
                 if not getCondVisibility("Container.Scrolling | Container.OnNext"
                                          " | Container.OnPrevious | Player.HasVideo"):
                     tvshow_str = ""
                     if allow_local_tv_show:
                         tvshow_str = "tv show"
-                    for media in self.get_youtube_listing("(%s, %s, %s) trailer" % (title, local_language, tvshow_str)):
+                    for media in self.get_youtube_listing("%s %s %s trailer" % (title, tvshow_str, local_language)):
                         if not media["filetype"] == "directory":
                             results.append(media["file"])
                         if results:
@@ -512,39 +517,39 @@ class MainModule:
             log_msg("Could not retrieve tvshowid for dbid: %s" % dbid)
 
     def colorpicker(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.colorpicker")
 
     def backup(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def restore(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def reset(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def colorthemes(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def createcolortheme(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def restorecolortheme(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.skinbackup")
 
     def conditionalbackgrounds(self):
-        '''legacy'''
+        """legacy"""
         self.deprecated_method("script.skin.helper.backgrounds")
 
     def splashscreen(self):
-        '''helper to show a user defined splashscreen in the skin'''
+        """helper to show a user defined splashscreen in the skin"""
         import time
         splashfile = self.params.get("file", "")
         duration = int(self.params.get("duration", 5))
@@ -570,7 +575,7 @@ class MainModule:
             xbmc.executebuiltin("PlayMedia(%s)" % autostart_playlist)
 
     def videosearch(self):
-        '''show the special search dialog'''
+        """show the special search dialog"""
         busyDialog("activate")
         from resources.lib.searchdialog import SearchDialog
         search_dialog = SearchDialog("script-skin_helper_service-CustomSearch.xml",
@@ -579,14 +584,14 @@ class MainModule:
         del search_dialog
 
     def showinfo(self):
-        '''shows our special videoinfo dialog'''
+        """shows our special videoinfo dialog"""
         dbid = self.params.get("dbid", "")
         dbtype = self.params.get("dbtype", "")
         from infodialog import show_infodialog
         show_infodialog(dbid, dbtype)
 
     def deletedir(self):
-        '''helper to delete a directory, input can be normal filesystem path or vfs'''
+        """helper to delete a directory, input can be normal filesystem path or vfs"""
         del_path = self.params.get("path")
         if del_path:
             ret = xbmcgui.Dialog().yesno(heading=xbmc.getLocalizedString(122),
@@ -601,7 +606,7 @@ class MainModule:
                                         line1=xbmc.getLocalizedString(32015))
 
     def overlaytexture(self):
-        '''legacy: helper to let the user choose a background overlay from a skin defined folder'''
+        """legacy: helper to let the user choose a background overlay from a skin defined folder"""
         skinstring = self.params.get("skinstring", "BackgroundOverlayTexture")
         self.params["skinstring"] = skinstring
         self.params["resourceaddon"] = "resource.images.backgroundoverlays"
@@ -611,7 +616,7 @@ class MainModule:
         self.selectimage()
 
     def busytexture(self):
-        '''legacy: helper which lets the user select a busy spinner from predefined spinners in the skin'''
+        """legacy: helper which lets the user select a busy spinner from predefined spinners in the skin"""
         skinstring = self.params.get("skinstring", "SkinHelper.SpinnerTexture")
         self.params["skinstring"] = skinstring
         self.params["resourceaddon"] = "resource.images.busyspinners"
@@ -621,7 +626,7 @@ class MainModule:
         self.selectimage()
 
     def selectimage(self):
-        '''helper which lets the user select an image or imagepath from resourceaddons or custom path'''
+        """helper which lets the user select an image or imagepath from resourceaddons or custom path"""
         skinsettings = SkinSettings()
         skinstring = self.params.get("skinstring", "")
         skinshortcutsprop = self.params.get("skinshortcutsproperty", "")
@@ -653,7 +658,7 @@ class MainModule:
         del skinsettings
 
     def dialogok(self):
-        '''helper to show an OK dialog with a message'''
+        """helper to show an OK dialog with a message"""
         headertxt = clean_string(self.params.get("header", ""))
         bodytxt = clean_string(self.params.get("message", ""))
         dialog = xbmcgui.Dialog()
@@ -661,7 +666,7 @@ class MainModule:
         del dialog
 
     def dialogyesno(self):
-        '''helper to show a YES/NO dialog with a message'''
+        """helper to show a YES/NO dialog with a message"""
         headertxt = clean_string(self.params.get("header", ""))
         bodytxt = clean_string(self.params.get("message", ""))
         yesactions = self.params.get("yesaction", "").split("|")
@@ -674,15 +679,14 @@ class MainModule:
                 xbmc.executebuiltin(action.encode("utf-8"))
 
     def textviewer(self):
-        '''helper to show a textviewer dialog with a message'''
+        """helper to show a textviewer dialog with a message"""
         headertxt = clean_string(self.params.get("header", ""))
         bodytxt = clean_string(self.params.get("message", ""))
         xbmcgui.Dialog().textviewer(headertxt, bodytxt)
-        
 
     def fileexists(self):
-        '''helper to let the skinner check if a file exists
-        and write the outcome to a window prop or skinstring'''
+        """helper to let the skinner check if a file exists
+        and write the outcome to a window prop or skinstring"""
         filename = self.params.get("file")
         skinstring = self.params.get("skinstring")
         windowprop = self.params.get("winprop")
@@ -698,7 +702,7 @@ class MainModule:
                 xbmc.executebuiltin("Skin.Reset(%s)" % skinstring)
 
     def stripstring(self):
-        '''helper to allow the skinner to strip a string and write results to a skin string'''
+        """helper to allow the skinner to strip a string and write results to a skin string"""
         splitchar = self.params.get("splitchar")
         if splitchar.upper() == "[SPACE]":
             splitchar = " "
@@ -714,7 +718,7 @@ class MainModule:
             self.win.setProperty(output, skinstring[int(index)])
 
     def getfilename(self, filename=""):
-        '''helper to display a sanitized filename in the vidoeinfo dialog'''
+        """helper to display a sanitized filename in the vidoeinfo dialog"""
         output = self.params.get("output")
         if not filename:
             filename = xbmc.getInfoLabel("ListItem.FileNameAndPath")
@@ -726,14 +730,14 @@ class MainModule:
         self.win.setProperty(output, filename)
 
     def getplayerfilename(self):
-        '''helper to parse the filename from a plugin (e.g. emby) filename'''
+        """helper to parse the filename from a plugin (e.g. emby) filename"""
         filename = xbmc.getInfoLabel("Player.FileNameAndPath")
         if not filename:
             filename = xbmc.getInfoLabel("Player.FileName")
         self.getfilename(filename)
 
     def getpercentage(self):
-        '''helper to calculate the percentage of 2 numbers and write results to a skinstring'''
+        """helper to calculate the percentage of 2 numbers and write results to a skinstring"""
         total = int(params.get("total"))
         count = int(params.get("count"))
         roundsteps = self.params.get("roundsteps")
@@ -745,14 +749,14 @@ class MainModule:
         xbmc.executebuiltin("Skin.SetString(%s,%s)" % (skinstring, percentage))
 
     def setresourceaddon(self):
-        '''helper to let the user choose a resource addon and set that as skin string'''
+        """helper to let the user choose a resource addon and set that as skin string"""
         from resourceaddons import setresourceaddon
         addontype = self.params.get("addontype", "")
         skinstring = self.params.get("skinstring", "")
         setresourceaddon(addontype, skinstring)
 
     def checkresourceaddons(self):
-        '''allow the skinner to perform a basic check if some required resource addons are available'''
+        """allow the skinner to perform a basic check if some required resource addons are available"""
         from resourceaddons import checkresourceaddons
         addonslist = self.params.get("addonslist", [])
         if addonslist:
