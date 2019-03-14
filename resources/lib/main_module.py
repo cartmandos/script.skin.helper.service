@@ -70,6 +70,16 @@ class MainModule:
             params[paramname] = paramvalue
         return params
 
+    def get_first_youtube_video(self, query):
+        results = []
+        youtube_list = self.get_youtube_listing('%s' % query)
+        for media in youtube_list:
+            if not media["filetype"] == "directory":
+                results.append(media["file"])
+            if results:
+                return results[0]
+        return ""
+
     def deprecated_method(self, newaddon):
         """
             used when one of the deprecated methods is called
@@ -145,7 +155,7 @@ class MainModule:
                     if display_none:
                         cur_view_select_id += 1
                 if (("all" in mediatypes or content_type.lower() in mediatypes) and
-                    (not "!" + content_type.lower() in mediatypes) and not
+                        (not "!" + content_type.lower() in mediatypes) and not
                         getCondVisibility("Skin.HasSetting(SkinHelper.view.Disabled.%s)" % viewid)):
                     image = "special://skin/extras/viewthumbs/%s.jpg" % viewid
                     listitem = xbmcgui.ListItem(label=label, iconImage=image)
@@ -210,6 +220,7 @@ class MainModule:
                 else:
                     # view is disabled
                     xbmc.executebuiltin("Skin.SetBool(SkinHelper.view.Disabled.%s)" % view_id)
+
     # pylint: enable-msg=too-many-local-variables
 
     def setforcedview(self):
@@ -227,7 +238,7 @@ class MainModule:
     @staticmethod
     def get_youtube_listing(searchquery):
         """get items from youtube plugin by query"""
-        lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s" % searchquery
+        lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s&hide_folders=true" % searchquery
         metadatautils = MetadataUtils()
         files = metadatautils.kodidb.files(lib_path)
         del metadatautils
@@ -240,16 +251,15 @@ class MainModule:
         window_header = self.params.get("header", "")
         results = []
         for media in self.get_youtube_listing(title):
-            if not media["filetype"] == "directory":
-                label = media["label"]
-                label2 = media["plot"]
-                image = ""
-                if media.get('art'):
-                    if media['art'].get('thumb'):
-                        image = (media['art']['thumb'])
-                listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
-                listitem.setProperty("path", media["file"])
-                results.append(listitem)
+            label = media["label"]
+            label2 = media["plot"]
+            image = ""
+            if media.get('art'):
+                if media['art'].get('thumb'):
+                    image = (media['art']['thumb'])
+            listitem = xbmcgui.ListItem(label=label, label2=label2, iconImage=image)
+            listitem.setProperty("path", media["file"])
+            results.append(listitem)
 
         # finished lookup - display listing with results
         busyDialog("close")
@@ -328,7 +338,7 @@ class MainModule:
             for i in range(10):
                 for control in controls:
                     if getCondVisibility("Control.IsVisible(%s) + Integer.IsGreater(Container(%s).NumItems,0)"
-                                              % (control, control)):
+                                         % (control, control)):
                         self.win.setProperty("SkinHelper.WidgetContainer", control)
                         return
                 xbmc.sleep(50)
@@ -425,14 +435,7 @@ class MainModule:
             li_title = xbmc.getInfoLabel("%sListItem.Title" % widget_container_prefix).decode('utf-8')
             li_trailer = xbmc.getInfoLabel("%sListItem.Trailer" % widget_container_prefix).decode('utf-8')
             if not li_trailer and allow_youtube:
-                li_trailer = ""
-                results = []
-                for media in self.get_youtube_listing("%s Trailer" % li_title):
-                    if not media["filetype"] == "directory":
-                        results.append(media["file"])
-                    if results:
-                        li_trailer = results[0]
-                        break
+                li_trailer = self.get_first_youtube_video("%s trailer" % li_title)
             # always wait a bit to prevent trailer start playing when we're scrolling the list
             xbmc.Monitor().waitForAbort(3)
             if li_trailer and (li_title == xbmc.getInfoLabel("%sListItem.Title"
@@ -458,10 +461,10 @@ class MainModule:
             allow_local_tv_show = self.params.get("tvshow", "") == "true"
             item_control_id = self.params.get("control", "System.CurrentControlID")
             allow_youtube = self.params.get("youtube", "true") == "true"
-            local_language = ""
             list_item_title = xbmc.getInfoLabel("ListItem.Title")
+            local_language = ""
             if local:
-                local_language = xbmc.getInfoLabel("System.Language").decode('utf-8')
+                local_language = " " + xbmc.getInfoLabel("System.Language").decode('utf-8')
             li_trailer = ""
 
             if allow_local_tv_show:
@@ -469,7 +472,8 @@ class MainModule:
                     'Container({}).ListItem().Path'.format(xbmc.getInfoLabel('%s' % item_control_id)))
                 if not item_path:
                     item_path = xbmc.getInfoLabel(
-                        'Container({}).ListItem.Property(originalpath)'.format(xbmc.getInfoLabel('%s' % item_control_id)))
+                        'Container({}).ListItem.Property(originalpath)'.format(
+                            xbmc.getInfoLabel('%s' % item_control_id)))
                 folder_name = xbmc.getInfoLabel(
                     'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('%s' % item_control_id)))
                 if item_path:
@@ -481,19 +485,13 @@ class MainModule:
                                 (file_name_noext == "tvshow-trailer" or file_name_noext == folder_name_trailer):
                             li_trailer = os.path.join(item_path, filename)
 
-            if not li_trailer and title and allow_youtube:
-                results = []
-                if not getCondVisibility("Container.Scrolling | Container.OnNext"
-                                         " | Container.OnPrevious | Player.HasVideo"):
-                    tvshow_str = ""
-                    if allow_local_tv_show:
-                        tvshow_str = "tv show"
-                    for media in self.get_youtube_listing("%s %s %s trailer" % (title, tvshow_str, local_language)):
-                        if not media["filetype"] == "directory":
-                            results.append(media["file"])
-                        if results:
-                            li_trailer = results[0]
-                            break
+            if not li_trailer and title and allow_youtube \
+                    and not getCondVisibility("Container.Scrolling | Container.OnNext"
+                                              " | Container.OnPrevious | Player.HasVideo"):
+                tvshow_str = ""
+                if allow_local_tv_show:
+                    tvshow_str = " tv show"
+                li_trailer = self.get_first_youtube_video("%s%s%s trailer" % (title, tvshow_str, local_language))
 
             self.win.setProperty("traileractionbusy", "traileractionbusy")
             if li_trailer and not getCondVisibility("Container.Scrolling | Container.OnNext "
@@ -582,13 +580,6 @@ class MainModule:
                                      self.addon.getAddonInfo('path').decode("utf-8"), "Default", "1080i")
         search_dialog.doModal()
         del search_dialog
-
-    def showinfo(self):
-        """shows our special videoinfo dialog"""
-        dbid = self.params.get("dbid", "")
-        dbtype = self.params.get("dbtype", "")
-        from infodialog import show_infodialog
-        show_infodialog(dbid, dbtype)
 
     def deletedir(self):
         """helper to delete a directory, input can be normal filesystem path or vfs"""
