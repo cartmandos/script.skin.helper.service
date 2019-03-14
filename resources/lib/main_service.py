@@ -16,12 +16,7 @@ from metadatautils import MetadataUtils
 import xbmc
 import xbmcaddon
 import xbmcgui
-try:
-    WebServiceOn = True
-    from webservice import WebService
-except ImportError:
-    WebServiceOn = False
-    log_msg('Webservice could not be imported. If Kodi version is UWP this message can be ignored.', xbmc.LOGNOTICE)
+from webservice import WebService
 
 
 class MainService:
@@ -37,14 +32,12 @@ class MainService:
         self.kodimonitor = KodiMonitor(metadatautils=self.metadatautils, win=self.win)
         self.listitem_monitor = ListItemMonitor(
             metadatautils=self.metadatautils, win=self.win, monitor=self.kodimonitor)
-        if WebServiceOn:
-            self.webservice = WebService(self.metadatautils)
+        self.webservice = WebService(self.metadatautils)
         self.win.clearProperty("SkinHelperShutdownRequested")
 
         # start the extra threads
         self.listitem_monitor.start()
-        if WebServiceOn:
-            self.webservice.start()
+        self.webservice.start()
         
         log_msg('%s version %s started' % (self.addonname, self.addonversion), xbmc.LOGNOTICE)
 
@@ -62,8 +55,7 @@ class MainService:
 
     def close(self):
         """Cleanup Kodi Cpython instances"""
-        if WebServiceOn:
-            self.webservice.stop()
+        self.webservice.stop()
         self.win.setProperty("SkinHelperShutdownRequested", "shutdown")
         log_msg('Shutdown requested !', xbmc.LOGNOTICE)
         self.listitem_monitor.stop()
