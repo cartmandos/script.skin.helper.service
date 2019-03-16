@@ -71,13 +71,10 @@ class MainModule:
         return params
 
     def get_first_youtube_video(self, query):
-        results = []
-        youtube_list = self.get_youtube_listing('%s' % query)
+        youtube_list = self.get_youtube_listing('%s' % query, limits=(0, 5))
         for media in youtube_list:
-            if not media["filetype"] == "directory":
-                results.append(media["file"])
-            if results:
-                return results[0]
+            if media["filetype"] != "directory":
+                return media["file"]
         return ""
 
     def deprecated_method(self, newaddon):
@@ -236,11 +233,11 @@ class MainModule:
                 xbmc.executebuiltin("Skin.SetString(SkinHelper.ForcedViews.%s.label,%s)" % (content_type, view_label))
 
     @staticmethod
-    def get_youtube_listing(searchquery):
+    def get_youtube_listing(searchquery, limits=None):
         """get items from youtube plugin by query"""
-        lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s&hide_folders=true" % searchquery
+        lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s&search_type=video" % searchquery
         metadatautils = MetadataUtils()
-        files = metadatautils.kodidb.files(lib_path)
+        files = metadatautils.kodidb.files(lib_path, limits=limits)
         del metadatautils
         return files
 
